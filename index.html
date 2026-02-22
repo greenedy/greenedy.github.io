@@ -115,7 +115,7 @@
     }
   </style>
 </head>
-<body>
+<body class="dark-mode">
   <button class="dark-mode-toggle" id="darkModeToggle" aria-label="Toggle dark mode">
     <span class="toggle-knob"></span>
   </button>
@@ -164,9 +164,9 @@
   <script>
     (function() {
       var toggle = document.getElementById('darkModeToggle');
-      // Restore saved preference
-      if (localStorage.getItem('darkMode') === 'true') {
-        document.body.classList.add('dark-mode');
+      // Restore saved preference; default is dark mode
+      if (localStorage.getItem('darkMode') === 'false') {
+        document.body.classList.remove('dark-mode');
       }
       toggle.addEventListener('click', function() {
         document.body.classList.toggle('dark-mode');
