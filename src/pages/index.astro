@@ -1,0 +1,56 @@
+---
+import Download from "@lucide/astro/icons/download";
+import Layout from "../layouts/Layout.astro";
+import LinkCard from "../components/LinkCard.astro";
+import CopyEmail from "../components/CopyEmail.astro";
+import GitHub from "../components/icons/GitHub.astro";
+import LinkedIn from "../components/icons/LinkedIn.astro";
+import X from "../components/icons/X.astro";
+import Bluesky from "../components/icons/Bluesky.astro";
+
+const email = "greenedy@hotmail.com";
+---
+
+<Layout>
+  <div class="stack">
+    <p class="intro">
+      Software engineer at the Canada Border Services Agency, working full-stack and
+      mostly on AWS. Software Engineering grad from the University of Ottawa. Most of
+      my career has been in government IT, taking things from a first commit through
+      to something real people depend on — and building small useless things on the
+      side.
+    </p>
+
+    <div class="card-list">
+      <LinkCard href="https://github.com/greenedy" label="GitHub">
+        <GitHub />
+      </LinkCard>
+
+      <LinkCard href="https://www.linkedin.com/in/greenedy" label="LinkedIn">
+        <LinkedIn />
+      </LinkCard>
+
+      <LinkCard href="https://x.com/Greeenedy" label="X">
+        <X />
+      </LinkCard>
+
+      <LinkCard href="https://bsky.app/profile/greenedy.bsky.social" label="Bluesky">
+        <Bluesky />
+      </LinkCard>
+    </div>
+
+    <div class="contact">
+      <div class="contact-left">
+        <CopyEmail email={email} />
+      </div>
+
+      {/* EDIT ME: drop a CV PDF in public/, or delete this block. */}
+      <div>
+        <a class="cta" href="/dylan-greene-cv.pdf" download="Dylan-Greene-CV.pdf">
+          <span>Download my CV</span>
+          <Download stroke-width={1.4} aria-hidden="true" />
+        </a>
+      </div>
+    </div>
+  </div>
+</Layout>

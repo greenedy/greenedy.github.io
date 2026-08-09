@@ -1,0 +1,87 @@
+---
+import Header from "../components/Header.astro";
+import ScrollToTop from "../components/ScrollToTop.astro";
+import "../styles/global.css";
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = "Dylan Greene",
+  description = "Dylan Greene's personal website.",
+} = Astro.props;
+
+const isHome = (Astro.url.pathname.replace(/\/$/, "") || "/") === "/";
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+
+// Baked in at build time; the script below keeps it right if the site sits
+// unbuilt across New Year.
+const year = new Date().getFullYear();
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Karla:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+
+    {/* is:inline keeps this unbundled so it runs before first paint. */}
+    <script is:inline>
+      (function () {
+        try {
+          var stored = localStorage.getItem("theme");
+          var theme = stored === "light" || stored === "dark" ? stored : "system";
+          var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.dataset.theme = theme;
+          document.documentElement.classList.toggle(
+            "dark",
+            theme === "dark" || (theme === "system" && prefersDark)
+          );
+        } catch (e) {
+          document.documentElement.dataset.theme = "system";
+          if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+            document.documentElement.classList.add("dark");
+          }
+        }
+      })();
+    </script>
+  </head>
+
+  <body data-page={isHome ? "home" : "page"}>
+    <Header />
+
+    <main class="wrap">
+      <slot />
+      <ScrollToTop />
+    </main>
+
+    <footer class="site-footer wrap">
+      <span data-year>{year}</span>
+    </footer>
+
+    <script>
+      const year = String(new Date().getFullYear());
+      document.querySelectorAll("[data-year]").forEach((el) => {
+        el.textContent = year;
+      });
+    </script>
+  </body>
+</html>

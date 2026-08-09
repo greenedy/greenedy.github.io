@@ -1,0 +1,28 @@
+---
+import ArrowUp from "@lucide/astro/icons/arrow-up";
+---
+
+<button data-scroll-top class="scroll-top-desktop" type="button" aria-label="Scroll to top">
+  Back to top
+  <ArrowUp stroke-width={2} aria-hidden="true" />
+</button>
+
+<button data-scroll-top class="scroll-top-mobile" type="button" aria-label="Scroll to top">
+  <ArrowUp stroke-width={2} aria-hidden="true" />
+</button>
+
+<script>
+  const buttons = document.querySelectorAll("[data-scroll-top]");
+
+  function sync() {
+    const show = window.scrollY > 400;
+    buttons.forEach((button) => button.classList.toggle("visible", show));
+  }
+
+  buttons.forEach((button) =>
+    button.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }))
+  );
+
+  window.addEventListener("scroll", sync, { passive: true });
+  sync();
+</script>

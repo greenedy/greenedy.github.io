@@ -1,0 +1,77 @@
+---
+import Copy from "@lucide/astro/icons/copy";
+import Check from "@lucide/astro/icons/check";
+
+interface Props {
+  email: string;
+}
+
+const { email } = Astro.props;
+---
+
+<button id="copy-email" type="button" data-email={email} aria-label="Copy email address">
+  {email}
+  <span>
+    <Copy data-copy-icon stroke-width={1.4} aria-hidden="true" />
+    <Check data-check-icon stroke-width={1.4} aria-hidden="true" />
+  </span>
+</button>
+
+<script>
+  const button = document.getElementById("copy-email");
+
+  if (button) {
+    const email = button.dataset.email ?? "";
+    let timer: ReturnType<typeof setTimeout>;
+
+    function showCopied() {
+      button!.classList.add("copied");
+      clearTimeout(timer);
+      timer = setTimeout(() => button!.classList.remove("copied"), 2000);
+    }
+
+    // execCommand only works inside the user-gesture window, so it can't be
+    // deferred to the clipboard API's rejection handler. Run it up front and
+    // hold the result as a safety net.
+    function legacyCopy() {
+      const selection = document.getSelection();
+      const previous = selection?.rangeCount ? selection.getRangeAt(0) : null;
+
+      const field = document.createElement("textarea");
+      field.value = email;
+      field.setAttribute("readonly", "");
+      field.style.position = "fixed";
+      field.style.top = "0";
+      field.style.opacity = "0";
+      document.body.appendChild(field);
+      field.select();
+
+      let ok = false;
+      try {
+        ok = document.execCommand("copy");
+      } catch {
+        /* nothing left to try — the address is visible as text anyway */
+      }
+
+      document.body.removeChild(field);
+      if (previous && selection) {
+        selection.removeAllRanges();
+        selection.addRange(previous);
+      }
+      return ok;
+    }
+
+    button.addEventListener("click", () => {
+      const copiedSynchronously = legacyCopy();
+
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(email).then(showCopied, () => {
+          if (copiedSynchronously) showCopied();
+        });
+        return;
+      }
+
+      if (copiedSynchronously) showCopied();
+    });
+  }
+</script>

@@ -1,0 +1,691 @@
+/* ---------------------------------------------------------------- *
+ *  greenedy.com — base styles
+ * ---------------------------------------------------------------- */
+
+:root {
+  --zinc-50: #fafafa;
+  --zinc-100: #f4f4f5;
+  --zinc-200: #e4e4e7;
+  --zinc-300: #d4d4d8;
+  --zinc-400: #a1a1aa;
+  --zinc-500: #71717a;
+  --zinc-600: #52525b;
+  --zinc-700: #3f3f46;
+  --zinc-800: #27272a;
+  --zinc-900: #18181b;
+  --zinc-950: #09090b;
+
+  /* light theme (default) */
+  --bg: var(--zinc-50);
+  --fg: var(--zinc-800);
+  --fg-strong: var(--zinc-950);
+  --muted: var(--zinc-500);
+  --prose: var(--zinc-600);
+  --border: var(--zinc-400);
+  --hover: var(--zinc-100);
+  --accent: #0ea5e9;
+  --accent-soft: #7dd3fc;
+  --accent-ink: #075985;
+  --success: #16a34a;
+}
+
+html.dark {
+  --bg: var(--zinc-900);
+  --fg: var(--zinc-200);
+  --fg-strong: var(--zinc-200);
+  --muted: var(--zinc-400);
+  --prose: rgb(212 212 216 / 0.8);
+  --border: var(--zinc-500);
+  --hover: var(--zinc-800);
+  --accent: #0284c7;
+  --accent-soft: transparent;
+  --accent-ink: #0ea5e9;
+  --success: #10b981;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  padding: 0 1.5rem;
+  background-color: var(--bg);
+  color: var(--fg);
+  font-family: Karla, ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    sans-serif;
+  line-height: 1.5;
+}
+
+.wrap {
+  margin-inline: auto;
+  max-width: 65ch;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+svg {
+  display: block;
+  flex-shrink: 0;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 0.25rem;
+}
+
+/* ----------------------------------------------------------------
+ *  Header / nav
+ * ---------------------------------------------------------------- */
+
+.site-header {
+  padding: 2rem 0;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.home-link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin: -0.5rem;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  box-shadow: 0 0 0 0 var(--accent);
+  transition: box-shadow 150ms ease;
+}
+
+.home-name {
+  display: flex;
+  flex-direction: column;
+}
+
+.home-name span {
+  color: var(--muted);
+}
+
+.home-chevron {
+  display: none;
+}
+
+/* On sub-pages the home link becomes an obvious "back" affordance. */
+body:not([data-page="home"]) .home-chevron {
+  display: block;
+}
+
+/* Once the viewport is wide enough to have gutters outside the 65ch column,
+   hang the chevron in that gutter so the name doesn't shift between pages.
+   Below this it stays in the flow, otherwise it lands off-screen. */
+@media (min-width: 768px) {
+  .home-link {
+    margin-left: -3rem;
+    padding-left: 3rem;
+  }
+
+  .home-chevron {
+    position: absolute;
+    left: 0.75rem;
+  }
+}
+
+@media (hover: hover) {
+  body:not([data-page="home"]) .home-link:hover {
+    box-shadow: 0 0 0 1px var(--accent);
+  }
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.nav-link {
+  position: relative;
+  padding: 1px 0.5rem;
+  border-radius: 0.25rem;
+  box-shadow: 0 0 0 0 var(--accent);
+  transition: box-shadow 150ms ease;
+}
+
+@media (hover: hover) {
+  .nav-link:hover {
+    box-shadow: 0 0 0 1px var(--accent);
+  }
+}
+
+.nav-link .marker {
+  position: absolute;
+  left: 50%;
+  translate: -50% 0;
+  margin-top: 0.25rem;
+  display: none;
+  width: 0.5rem;
+  height: 0.5rem;
+  fill: var(--accent);
+  color: transparent;
+}
+
+.nav-link[aria-current="page"] .marker {
+  display: block;
+}
+
+/* theme toggle — three icons, one visible per state */
+#theme-toggle {
+  display: flex;
+  align-items: center;
+}
+
+#theme-toggle svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  transition: rotate 150ms ease;
+}
+
+/* Low specificity on purpose — the html[data-theme=...] rules below must win. */
+[data-theme-icon] {
+  display: none;
+}
+
+html[data-theme="system"] [data-theme-icon="system"],
+html:not([data-theme]) [data-theme-icon="system"],
+html[data-theme="light"] [data-theme-icon="light"],
+html[data-theme="dark"] [data-theme-icon="dark"] {
+  display: block;
+}
+
+[data-theme-icon="system"] {
+  fill: rgb(212 212 216 / 0.5);
+}
+
+html.dark [data-theme-icon="system"] {
+  fill: rgb(161 161 170 / 0.4);
+}
+
+[data-theme-icon="light"] {
+  fill: #fde047;
+}
+
+[data-theme-icon="dark"] {
+  fill: var(--zinc-700);
+}
+
+@media (hover: hover) {
+  #theme-toggle:hover [data-theme-icon="light"] {
+    rotate: 45deg;
+  }
+
+  #theme-toggle:hover [data-theme-icon="system"],
+  #theme-toggle:hover [data-theme-icon="dark"] {
+    rotate: -6deg;
+  }
+}
+
+/* ----------------------------------------------------------------
+ *  Main content
+ * ---------------------------------------------------------------- */
+
+main {
+  padding-bottom: 1rem;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.intro {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+h1,
+h2 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 400;
+}
+
+/* Big centred page heading used on /projects, /about and 404. */
+.page-heading {
+  margin: 1rem 0 4rem;
+  text-align: center;
+  font-size: 3rem;
+  line-height: 1;
+}
+
+/* ----------------------------------------------------------------
+ *  Long-form prose (/about)
+ * ---------------------------------------------------------------- */
+
+article {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+article p {
+  margin: 0;
+  line-height: 1.625;
+  color: var(--prose);
+}
+
+article strong {
+  font-weight: 400;
+  color: var(--fg-strong);
+}
+
+article a {
+  color: var(--fg-strong);
+  text-decoration: underline;
+  text-decoration-color: var(--accent);
+  text-underline-offset: 4px;
+}
+
+/* ----------------------------------------------------------------
+ *  Project cards (/projects)
+ * ---------------------------------------------------------------- */
+
+.projects {
+  display: flex;
+  flex-direction: column;
+  gap: 5rem;
+}
+
+.project {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 0.25rem;
+  box-shadow: 0 0 0 1px var(--border);
+}
+
+.project > * + * {
+  border-top: 1px solid var(--border);
+}
+
+.project-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.project-head h2 {
+  font-size: 1.25rem;
+}
+
+.project-desc {
+  margin: 0;
+  padding: 1rem;
+}
+
+.project img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.tags {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.tag {
+  border-radius: 9999px;
+  padding: 0.125rem 0.625rem;
+  font-size: 0.875rem;
+  background-color: var(--tag-bg, var(--zinc-200));
+  color: var(--tag-fg, var(--zinc-950));
+}
+
+html.dark .tag {
+  background-color: transparent;
+  color: var(--zinc-200);
+  box-shadow: 0 0 0 1px var(--zinc-500);
+}
+
+.project-actions {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+}
+
+.project-actions a {
+  display: flex;
+  flex-grow: 1;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem 0;
+  transition: background-color 150ms ease;
+}
+
+.project-actions a + a {
+  border-left: 1px solid var(--border);
+}
+
+@media (hover: hover) {
+  .project-actions a:hover {
+    background-color: var(--hover);
+  }
+}
+
+.project-actions svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+/* ----------------------------------------------------------------
+ *  404
+ * ---------------------------------------------------------------- */
+
+.not-found {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: 4rem 0;
+  text-align: center;
+}
+
+.not-found h1 {
+  font-size: 3rem;
+  line-height: 1;
+}
+
+.not-found a {
+  text-decoration: underline;
+  text-decoration-color: var(--accent);
+  text-underline-offset: 4px;
+}
+
+/* card list — the row-of-links block */
+.card-list {
+  overflow: hidden;
+  border-radius: 0.25rem;
+  box-shadow: 0 0 0 1px var(--border);
+}
+
+.card-list > * + * {
+  border-top: 1px solid var(--border);
+}
+
+.card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem;
+  transition: background-color 150ms ease;
+}
+
+@media (hover: hover) {
+  .card:hover {
+    background-color: var(--hover);
+  }
+}
+
+.card-label {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.card-arrow {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--fg-strong);
+  transition: rotate 150ms ease;
+}
+
+@media (hover: hover) {
+  .card:hover .card-arrow {
+    rotate: 45deg;
+  }
+}
+
+/* brand icon colours: full colour in light, monochrome in dark */
+.icon-linkedin {
+  fill: #0077b5;
+}
+
+.icon-youtube {
+  fill: #ff0032;
+}
+
+.icon-bluesky {
+  fill: #0285ff;
+}
+
+.icon-x,
+.icon-github {
+  fill: var(--zinc-950);
+}
+
+html.dark .icon-linkedin,
+html.dark .icon-youtube,
+html.dark .icon-bluesky,
+html.dark .icon-x,
+html.dark .icon-github {
+  fill: var(--zinc-200);
+}
+
+/* ----------------------------------------------------------------
+ *  Contact row
+ * ---------------------------------------------------------------- */
+
+.contact {
+  display: flex;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.contact-left {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1rem;
+}
+
+#copy-email {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--fg-strong);
+}
+
+#copy-email svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+#copy-email [data-check-icon] {
+  display: none;
+}
+
+#copy-email.copied [data-copy-icon] {
+  display: none;
+}
+
+#copy-email.copied [data-check-icon] {
+  display: block;
+  color: var(--success);
+}
+
+.cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-radius: 0.25rem;
+  background-color: var(--accent-soft);
+  color: var(--accent-ink);
+  box-shadow: 0 0 0 1px var(--accent);
+  white-space: nowrap;
+  transition: background-color 150ms ease;
+}
+
+@media (hover: hover) {
+  .cta:hover {
+    background-color: var(--hover);
+  }
+}
+
+.cta svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+/* ----------------------------------------------------------------
+ *  Back to top
+ * ---------------------------------------------------------------- */
+
+[data-scroll-top] {
+  position: fixed;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 0.25rem;
+  background-color: var(--bg);
+  box-shadow: 0 0 0 1px var(--border);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 150ms ease, background-color 150ms ease;
+}
+
+[data-scroll-top].visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+@media (hover: hover) {
+  [data-scroll-top]:hover {
+    background-color: var(--hover);
+  }
+}
+
+[data-scroll-top] svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.scroll-top-desktop {
+  top: 2rem;
+  right: 2rem;
+  padding: 0.5rem 0.75rem 0.5rem 1rem;
+}
+
+.scroll-top-mobile {
+  display: none;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  padding: 0.75rem;
+}
+
+/* ----------------------------------------------------------------
+ *  Footer
+ * ---------------------------------------------------------------- */
+
+.site-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1.5rem 0;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+/* ----------------------------------------------------------------
+ *  Small screens
+ * ---------------------------------------------------------------- */
+
+@media (max-width: 639px) {
+  .site-header {
+    padding-top: 1rem;
+  }
+
+  .nav {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .home-link {
+    margin-left: -0.5rem;
+    padding-left: 0.5rem;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .home-name {
+    align-items: center;
+  }
+
+  .home-chevron {
+    display: none !important;
+  }
+
+  .contact {
+    flex-direction: column-reverse;
+    justify-content: center;
+  }
+
+  .contact-left {
+    align-items: center;
+  }
+
+  .scroll-top-desktop {
+    display: none;
+  }
+
+  .scroll-top-mobile {
+    display: flex;
+  }
+
+  .page-heading {
+    font-size: 2.25rem;
+  }
+
+  .not-found h1 {
+    font-size: 1.875rem;
+  }
+
+  .project-head {
+    flex-direction: column;
+  }
+}

@@ -1,0 +1,87 @@
+---
+import ChevronLeft from "@lucide/astro/icons/chevron-left";
+import Laptop from "@lucide/astro/icons/laptop";
+import Sun from "@lucide/astro/icons/sun";
+import Moon from "@lucide/astro/icons/moon";
+import Triangle from "@lucide/astro/icons/triangle";
+
+// Resolved at build time, so the active-page marker needs no client JS.
+const path = Astro.url.pathname.replace(/\/$/, "") || "/";
+
+const navLinks = [
+  { href: "/projects", label: "/projects", aria: "View projects" },
+  { href: "/about", label: "/about", aria: "View about page" },
+];
+---
+
+<header class="site-header wrap">
+  <nav class="nav">
+    <a class="home-link" href="/" aria-label="Back to home">
+      <ChevronLeft class="home-chevron" size={16} stroke-width={1.4} aria-hidden="true" />
+      <span class="home-name">
+        Dylan Greene
+        <span>Software Engineer</span>
+      </span>
+    </a>
+
+    <div class="nav-actions">
+      <button id="theme-toggle" type="button" aria-label="Switch theme">
+        <Laptop data-theme-icon="system" stroke-width={1.4} aria-hidden="true" />
+        <Sun data-theme-icon="light" stroke-width={1.4} aria-hidden="true" />
+        <Moon data-theme-icon="dark" stroke-width={1.4} aria-hidden="true" />
+      </button>
+
+      {
+        navLinks.map((link) => (
+          <a
+            class="nav-link"
+            href={link.href}
+            aria-label={link.aria}
+            aria-current={path === link.href ? "page" : undefined}
+          >
+            {link.label}
+            <Triangle class="marker" stroke-width={2} aria-hidden="true" />
+          </a>
+        ))
+      }
+    </div>
+  </nav>
+</header>
+
+<script>
+  const NEXT = { system: "light", light: "dark", dark: "system" } as const;
+
+  type Theme = keyof typeof NEXT;
+
+  function storedTheme(): Theme {
+    try {
+      const t = localStorage.getItem("theme");
+      return t === "light" || t === "dark" ? t : "system";
+    } catch {
+      return "system";
+    }
+  }
+
+  function applyTheme(theme: Theme) {
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const isDark = theme === "dark" || (theme === "system" && prefersDark);
+
+    document.documentElement.dataset.theme = theme;
+    document.documentElement.classList.toggle("dark", isDark);
+
+    try {
+      if (theme === "system") localStorage.removeItem("theme");
+      else localStorage.setItem("theme", theme);
+    } catch {
+      /* private mode — the theme just won't persist */
+    }
+  }
+
+  document.getElementById("theme-toggle")?.addEventListener("click", () => {
+    applyTheme(NEXT[storedTheme()]);
+  });
+
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+    if (storedTheme() === "system") applyTheme("system");
+  });
+</script>

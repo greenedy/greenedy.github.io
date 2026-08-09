@@ -1,0 +1,98 @@
+---
+import Globe from "@lucide/astro/icons/globe";
+import GitBranch from "@lucide/astro/icons/git-branch";
+import Layout from "../layouts/Layout.astro";
+
+type Tag = { label: string; bg: string; fg: string };
+
+type Project = {
+  name: string;
+  description: string;
+  /** Omit when there's nothing deployed — the "Visit website" action is skipped. */
+  url?: string;
+  repo: string;
+  /** Screenshots live in public/projects/ — 1200x630 works well. */
+  image?: string;
+  tags: Tag[];
+};
+
+const JS: Tag = { label: "JavaScript", bg: "#f7df1e", fg: "#09090b" };
+const HTML: Tag = { label: "HTML", bg: "#e34f26", fg: "#fafafa" };
+const CSS: Tag = { label: "CSS", bg: "#1572b6", fg: "#fafafa" };
+
+// EDIT ME: add an entry per project.
+const projects: Project[] = [
+  {
+    name: "greenedy.com",
+    description:
+      "This website. Built with Astro, styled with hand-written CSS, deployed to GitHub Pages. Dark mode follows your system by default and remembers if you override it.",
+    url: "https://www.greenedy.com",
+    repo: "https://github.com/greenedy/greenedy.github.io",
+    tags: [
+      { label: "Astro", bg: "#ff5d01", fg: "#fafafa" },
+      { label: "TypeScript", bg: "#007acc", fg: "#fafafa" },
+      CSS,
+    ],
+  },
+  {
+    name: "ChatGPT Discord Bot",
+    description:
+      "A Discord bot that answers prompts with ChatGPT. Built on discord.js and the OpenAI API, so a whole server can talk to a model without anyone leaving the chat.",
+    repo: "https://github.com/greenedy/ChatGPT-Discord-Bot",
+    tags: [
+      JS,
+      { label: "discord.js", bg: "#5865f2", fg: "#fafafa" },
+      { label: "OpenAI", bg: "#10a37f", fg: "#fafafa" },
+    ],
+  },
+  {
+    name: "duck extension",
+    description:
+      "A browser extension with exactly one job: show you a duck. Every click on the toolbar icon pulls a fresh photo from the random-d.uk API. No settings, no account, just ducks.",
+    repo: "https://github.com/greenedy/duck-extension",
+    tags: [JS, HTML, CSS],
+  },
+];
+---
+
+<Layout title="Projects - Dylan Greene" description="Things Dylan Greene has built.">
+  <h1 class="page-heading">Projects</h1>
+
+  <div class="projects">
+    {
+      projects.map((project) => (
+        <div class="project">
+          <div class="project-head">
+            <h2>{project.name}</h2>
+            <div class="tags">
+              {project.tags.map((tag) => (
+                <span class="tag" style={`--tag-bg: ${tag.bg}; --tag-fg: ${tag.fg}`}>
+                  {tag.label}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <p class="project-desc">{project.description}</p>
+
+          {project.image && (
+            <img src={project.image} width={1200} height={630} alt={`${project.name} preview`} />
+          )}
+
+          <div class="project-actions">
+            {project.url && (
+              <a href={project.url} target="_blank" rel="noopener noreferrer">
+                <Globe stroke-width={1.4} aria-hidden="true" />
+                Visit website
+              </a>
+            )}
+            <a href={project.repo} target="_blank" rel="noopener noreferrer">
+              <GitBranch stroke-width={1.4} aria-hidden="true" />
+              View code
+            </a>
+          </div>
+        </div>
+      ))
+    }
+  </div>
+</Layout>
