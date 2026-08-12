@@ -317,7 +317,7 @@ article a {
 .projects {
   display: flex;
   flex-direction: column;
-  gap: 5rem;
+  gap: 3rem;
 }
 
 .project {
@@ -486,10 +486,6 @@ html.dark .tag {
   fill: #ff0032;
 }
 
-.icon-bluesky {
-  fill: #0285ff;
-}
-
 .icon-x,
 .icon-github {
   fill: var(--zinc-950);
@@ -497,7 +493,6 @@ html.dark .tag {
 
 html.dark .icon-linkedin,
 html.dark .icon-youtube,
-html.dark .icon-bluesky,
 html.dark .icon-x,
 html.dark .icon-github {
   fill: var(--zinc-200);
