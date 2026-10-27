@@ -1,0 +1,292 @@
+---
+/**
+ * Drifting ASCII jellyfish, rendered to a canvas behind the page.
+ * Deliberately faint — it should read as texture, not decoration.
+ */
+---
+
+<canvas data-ascii-backdrop aria-hidden="true"></canvas>
+
+<style>
+  canvas {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    /* Fades out towards the bottom so the footer stays clean. */
+    mask-image: linear-gradient(to bottom, #000 0%, #000 72%, transparent 100%);
+  }
+</style>
+
+<script>
+  const el = document.querySelector<HTMLCanvasElement>("[data-ascii-backdrop]");
+  const context = el?.getContext("2d", { alpha: true });
+
+  if (el && context) {
+    // Re-bound as non-nullable consts so the closures below narrow cleanly.
+    const canvas = el;
+    const ctx = context;
+
+    const CELL_W = 8;
+    const CELL_H = 14;
+    const FONT_SIZE = 13;
+    const FPS = 24;
+
+    // Six density buckets, lightest first. Picking from a few glyphs per bucket
+    // (rather than one) is what gives the field its grain.
+    const RAMP = [".·'", ":;,^", "~+=i", "ox*zc", "XO8%$", "#&@W"];
+
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+    interface Jelly {
+      /** Horizontal home, as a fraction of viewport width. */
+      hx: number;
+      /** Vertical position, as a fraction of viewport height. */
+      vy: number;
+      /** Bell radius, in pixels. */
+      size: number;
+      rise: number;
+      wobble: number;
+      wobbleRate: number;
+      pulse: number;
+      phase: number;
+      strands: number;
+      gain: number;
+    }
+
+    let cols = 0;
+    let rows = 0;
+    let buf = new Float32Array(0);
+    let inks: string[] = [];
+    let jellies: Jelly[] = [];
+    let raf = 0;
+    let last = 0;
+    let clock = 0;
+
+    function hash(a: number, b: number, c: number) {
+      let h =
+        (Math.imul(a, 374761393) + Math.imul(b, 668265263) + Math.imul(c, 2246822519)) >>> 0;
+      h = (h ^ (h >>> 13)) >>> 0;
+      h = Math.imul(h, 1274126177) >>> 0;
+      return (h ^ (h >>> 16)) >>> 0;
+    }
+
+    function readInk() {
+      const style = getComputedStyle(document.documentElement);
+      const rgb =
+        (style.getPropertyValue("--ascii-ink").trim() || "113 113 122").replace(/,/g, " ");
+      const base = Number.parseFloat(style.getPropertyValue("--ascii-alpha")) || 0.12;
+      inks = RAMP.map(
+        (_, i) => `rgba(${rgb} / ${(base * (0.45 + 0.55 * (i / 5))).toFixed(4)})`
+      );
+    }
+
+    /** Bell radius, scaled down a little on narrow screens. */
+    function bellSize() {
+      const fit = Math.min(Math.max(window.innerWidth / 1100, 0.62), 1);
+      return (110 + Math.random() * 70) * fit;
+    }
+
+    function spawn(count: number): Jelly[] {
+      const out: Jelly[] = [];
+      for (let i = 0; i < count; i++) {
+        out.push({
+          hx: (i + 0.5) / count + (Math.random() - 0.5) * 0.18,
+          vy: 1.3 - (i / count) * 1.5 - Math.random() * 0.2,
+          size: bellSize(),
+          rise: 0.012 + Math.random() * 0.01,
+          wobble: 0.03 + Math.random() * 0.035,
+          wobbleRate: 0.1 + Math.random() * 0.12,
+          pulse: 0.55 + Math.random() * 0.35,
+          phase: Math.random() * Math.PI * 2,
+          strands: 8 + Math.floor(Math.random() * 3),
+          gain: 0.8 + Math.random() * 0.35,
+        });
+      }
+      return out;
+    }
+
+    function resize() {
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+      canvas.width = Math.round(w * dpr);
+      canvas.height = Math.round(h * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.font = `${FONT_SIZE}px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace`;
+      ctx.textBaseline = "top";
+
+      cols = Math.ceil(w / CELL_W) + 1;
+      rows = Math.ceil(h / CELL_H) + 1;
+      buf = new Float32Array(cols * rows);
+
+      const want = w < 700 ? 2 : w < 1200 ? 3 : 4;
+      if (jellies.length !== want) jellies = spawn(want);
+    }
+
+    /** Lay one jellyfish into the intensity buffer. */
+    function stamp(j: Jelly, t: number, w: number, h: number) {
+      const px = (j.hx + Math.sin(t * j.wobbleRate + j.phase) * j.wobble) * w;
+      const py = j.vy * h;
+
+      const sx = j.size / CELL_W;
+      const sy = j.size / CELL_H;
+      const cx = px / CELL_W;
+      const cy = py / CELL_H;
+
+      // Squash-and-stretch of the bell — the whole swim cycle in one number.
+      const k = 0.5 + 0.5 * Math.sin(t * j.pulse * Math.PI + j.phase);
+      const rx = 0.95 + 0.17 * k;
+      const ry = 0.8 - 0.17 * k;
+
+      // --- bell ---------------------------------------------------------
+      const r0 = Math.max(0, Math.floor(cy - 1.3 * ry * sy));
+      const r1 = Math.min(rows - 1, Math.ceil(cy + 0.35 * sy));
+      const c0 = Math.max(0, Math.floor(cx - 1.35 * rx * sx));
+      const c1 = Math.min(cols - 1, Math.ceil(cx + 1.35 * rx * sx));
+
+      for (let row = r0; row <= r1; row++) {
+        const Y = (row - cy) / sy;
+        const yn = Y / ry;
+        // The bell stops just below its widest point rather than closing up.
+        const skirt = Y > 0.08 ? Math.max(0, 1 - (Y - 0.08) * 7) : 1;
+        if (skirt <= 0) continue;
+        const base = row * cols;
+        for (let col = c0; col <= c1; col++) {
+          const xn = (col - cx) / sx / rx;
+          const d = Math.sqrt(xn * xn + yn * yn);
+          const e = d - 1;
+          // A soft shell rather than a hard outline, over a gentle interior.
+          const rim = e * e < 0.1 ? (1 - e * e * 10) * 0.8 : 0;
+          const fill = d < 1 ? 0.45 * (1 - d * d) : 0;
+          const v = (rim + fill) * skirt * j.gain;
+          if (v > 0) buf[base + col] += v;
+        }
+      }
+
+      // --- tentacles ----------------------------------------------------
+      const len = 1.75 + 0.25 * k;
+      const tr0 = Math.max(0, Math.floor(cy + 0.05 * sy));
+      const tr1 = Math.min(rows - 1, Math.ceil(cy + (0.05 + len) * sy));
+      const half = Math.max(1.5, 0.1 * sx);
+
+      for (let row = tr0; row <= tr1; row++) {
+        const yy = (row - cy) / sy - 0.05;
+        if (yy <= 0 || yy >= len) continue;
+        const taper = 1 - yy / len;
+        const fade = taper * taper * 0.95 * j.gain;
+        if (fade <= 0.01) continue;
+        const base = row * cols;
+
+        for (let s = 0; s < j.strands; s++) {
+          const u = j.strands === 1 ? 0 : (s / (j.strands - 1)) * 2 - 1;
+          const drift =
+            u * rx * 0.82 * (1 + 0.22 * yy) +
+            Math.sin(yy * 2.6 - t * 1.5 + j.phase + s * 0.9) * 0.17 * (yy / len);
+          const center = cx + drift * sx;
+          const lo = Math.max(0, Math.ceil(center - half));
+          const hi = Math.min(cols - 1, Math.floor(center + half));
+          for (let col = lo; col <= hi; col++) {
+            const dc = (col - center) / half;
+            buf[base + col] += (1 - dc * dc) * fade;
+          }
+        }
+      }
+    }
+
+    function draw(t: number) {
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      ctx.clearRect(0, 0, w, h);
+      buf.fill(0);
+
+      for (const j of jellies) stamp(j, t, w, h);
+
+      // Staggered so glyphs re-roll in drifting patches, not all at once.
+      const tick = t * 1.4;
+      let level = -1;
+
+      for (let row = 0; row < rows; row++) {
+        const base = row * cols;
+        const y = row * CELL_H;
+        for (let col = 0; col < cols; col++) {
+          const v = buf[base + col];
+          if (v < 0.07) continue;
+          const l = v >= 1 ? 5 : (v * 6) | 0;
+          if (l !== level) {
+            level = l;
+            ctx.fillStyle = inks[l];
+          }
+          const set = RAMP[l];
+          const seed = hash(col, row, (tick + col * 0.05 + row * 0.11) | 0);
+          ctx.fillText(set[seed % set.length], col * CELL_W, y);
+        }
+      }
+    }
+
+    function advance(dt: number) {
+      const h = window.innerHeight;
+      for (const j of jellies) {
+        j.vy -= j.rise * dt;
+        if (j.vy < -0.5 - j.size / h) {
+          j.vy = 1.25 + Math.random() * 0.3;
+          j.hx = Math.random() * 0.9 + 0.05;
+          j.size = bellSize();
+          j.phase = Math.random() * Math.PI * 2;
+        }
+      }
+    }
+
+    function frame(now: number) {
+      raf = requestAnimationFrame(frame);
+      const dt = Math.min((now - last) / 1000, 0.1);
+      if (dt < 1 / FPS) return;
+      last = now;
+      clock += dt;
+      advance(dt);
+      draw(clock);
+    }
+
+    function start() {
+      cancelAnimationFrame(raf);
+      if (reduced.matches || document.hidden) return;
+      last = performance.now();
+      raf = requestAnimationFrame(frame);
+    }
+
+    function restart() {
+      resize();
+      readInk();
+      if (reduced.matches) {
+        cancelAnimationFrame(raf);
+        draw(clock);
+      } else {
+        start();
+      }
+    }
+
+    let resizeTimer = 0;
+    window.addEventListener("resize", () => {
+      window.clearTimeout(resizeTimer);
+      resizeTimer = window.setTimeout(restart, 150);
+    });
+
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) cancelAnimationFrame(raf);
+      else start();
+    });
+
+    reduced.addEventListener("change", restart);
+
+    // The theme toggle swaps classes on <html>; re-read the ink when it does.
+    new MutationObserver(() => {
+      readInk();
+      if (reduced.matches) draw(clock);
+    }).observe(document.documentElement, { attributeFilter: ["class"] });
+
+    restart();
+  }
+</script>

@@ -27,6 +27,10 @@
   --accent-soft: #7dd3fc;
   --accent-ink: #075985;
   --success: #16a34a;
+
+  /* ASCII backdrop ink — "r g b" plus the alpha of its densest glyphs. */
+  --ascii-ink: 2 132 199;
+  --ascii-alpha: 0.13;
 }
 
 html.dark {
@@ -41,6 +45,9 @@ html.dark {
   --accent-soft: transparent;
   --accent-ink: #0ea5e9;
   --success: #10b981;
+
+  --ascii-ink: 125 211 252;
+  --ascii-alpha: 0.095;
 }
 
 *,
@@ -69,6 +76,14 @@ body {
 .wrap {
   margin-inline: auto;
   max-width: 65ch;
+}
+
+/* Keep page content above the fixed ASCII backdrop. */
+.site-header,
+main,
+.site-footer {
+  position: relative;
+  z-index: 1;
 }
 
 a {
