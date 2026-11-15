@@ -9,19 +9,22 @@ import Triangle from "@lucide/astro/icons/triangle";
 const path = Astro.url.pathname.replace(/\/$/, "") || "/";
 
 const navLinks = [
-  { href: "/projects", label: "/projects", aria: "View projects" },
-  { href: "/about", label: "/about", aria: "View about page" },
+  { href: "/projects", label: "/projects" },
+  { href: "/about", label: "/about" },
 ];
+
+// The name is the page heading on the homepage; sub-pages have their own h1.
+const NameTag = path === "/" ? "h1" : "span";
 ---
 
 <header class="site-header wrap">
   <nav class="nav">
-    <a class="home-link" href="/" aria-label="Back to home">
+    <a class="home-link" href="/">
       <ChevronLeft class="home-chevron" size={16} stroke-width={1.4} aria-hidden="true" />
-      <span class="home-name">
+      <NameTag class="home-name">
         Dylan Greene
         <span>Software Engineer</span>
-      </span>
+      </NameTag>
     </a>
 
     <div class="nav-actions">
@@ -36,7 +39,6 @@ const navLinks = [
           <a
             class="nav-link"
             href={link.href}
-            aria-label={link.aria}
             aria-current={path === link.href ? "page" : undefined}
           >
             {link.label}
@@ -62,12 +64,20 @@ const navLinks = [
     }
   }
 
+  /** Say the current state and what a click does, not just "Switch theme". */
+  function labelToggle(theme: Theme) {
+    document
+      .getElementById("theme-toggle")
+      ?.setAttribute("aria-label", `Theme: ${theme}. Switch to ${NEXT[theme]}`);
+  }
+
   function applyTheme(theme: Theme) {
     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
     const isDark = theme === "dark" || (theme === "system" && prefersDark);
 
     document.documentElement.dataset.theme = theme;
     document.documentElement.classList.toggle("dark", isDark);
+    labelToggle(theme);
 
     try {
       if (theme === "system") localStorage.removeItem("theme");
@@ -77,8 +87,12 @@ const navLinks = [
     }
   }
 
-  document.getElementById("theme-toggle")?.addEventListener("click", () => {
-    applyTheme(NEXT[storedTheme()]);
+  // The header is replaced on client-side navigation, so bind per page load.
+  document.addEventListener("astro:page-load", () => {
+    labelToggle(storedTheme());
+    document.getElementById("theme-toggle")?.addEventListener("click", () => {
+      applyTheme(NEXT[storedTheme()]);
+    });
   });
 
   window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {

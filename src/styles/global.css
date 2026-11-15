@@ -31,6 +31,8 @@
   /* ASCII backdrop ink — "r g b" plus the alpha of its densest glyphs. */
   --ascii-ink: 2 132 199;
   --ascii-alpha: 0.13;
+
+  color-scheme: light;
 }
 
 html.dark {
@@ -48,6 +50,8 @@ html.dark {
 
   --ascii-ink: 125 211 252;
   --ascii-alpha: 0.095;
+
+  color-scheme: dark;
 }
 
 *,
@@ -103,6 +107,19 @@ button {
 svg {
   display: block;
   flex-shrink: 0;
+}
+
+/* Read by screen readers, invisible on screen. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
 }
 
 :focus-visible {
@@ -216,6 +233,9 @@ body:not([data-page="home"]) .home-chevron {
 #theme-toggle {
   display: flex;
   align-items: center;
+  /* 40px tap target; the negative margin keeps the icon where it was. */
+  margin: -0.625rem;
+  padding: 0.625rem;
 }
 
 #theme-toggle svg {
@@ -339,6 +359,8 @@ article a {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  /* Opaque, so the ASCII backdrop stays in the margins and off the text. */
+  background-color: var(--bg);
   border-radius: 0.25rem;
   box-shadow: 0 0 0 1px var(--border);
 }
@@ -449,6 +471,7 @@ html.dark .tag {
 /* card list — the row-of-links block */
 .card-list {
   overflow: hidden;
+  background-color: var(--bg);
   border-radius: 0.25rem;
   box-shadow: 0 0 0 1px var(--border);
 }
@@ -594,12 +617,15 @@ html.dark .icon-github {
   background-color: var(--bg);
   box-shadow: 0 0 0 1px var(--border);
   opacity: 0;
+  /* visibility, not just opacity, so the hidden button leaves the tab order. */
+  visibility: hidden;
   pointer-events: none;
-  transition: opacity 150ms ease, background-color 150ms ease;
+  transition: opacity 150ms ease, background-color 150ms ease, visibility 150ms;
 }
 
 [data-scroll-top].visible {
   opacity: 1;
+  visibility: visible;
   pointer-events: auto;
 }
 
@@ -625,6 +651,18 @@ html.dark .icon-github {
   bottom: 1.5rem;
   right: 1.5rem;
   padding: 0.75rem;
+}
+
+/* Below this the gutter is too narrow for the labelled button, which would
+   sit on top of the content column — use the compact corner one instead. */
+@media (max-width: 1023px) {
+  .scroll-top-desktop {
+    display: none;
+  }
+
+  .scroll-top-mobile {
+    display: flex;
+  }
 }
 
 /* ----------------------------------------------------------------
@@ -677,14 +715,6 @@ html.dark .icon-github {
 
   .contact-left {
     align-items: center;
-  }
-
-  .scroll-top-desktop {
-    display: none;
-  }
-
-  .scroll-top-mobile {
-    display: flex;
   }
 
   .page-heading {

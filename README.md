@@ -99,7 +99,7 @@ Interface icons are [Lucide](https://lucide.dev), ISC License:
 > OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 > PERFORMANCE OF THIS SOFTWARE.
 
-Brand marks (GitHub, LinkedIn, X, Bluesky) are
+Brand marks (GitHub, LinkedIn, X, YouTube) are
 [Simple Icons](https://simpleicons.org), released under CC0 1.0. The
-[Karla](https://fonts.google.com/specimen/Karla) typeface is served by Google
-Fonts under the SIL Open Font License 1.1.
+[Karla](https://fonts.google.com/specimen/Karla) typeface is self-hosted via
+[Fontsource](https://fontsource.org) under the SIL Open Font License 1.1.

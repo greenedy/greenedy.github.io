@@ -12,17 +12,20 @@ import ArrowUp from "@lucide/astro/icons/arrow-up";
 </button>
 
 <script>
-  const buttons = document.querySelectorAll("[data-scroll-top]");
-
   function sync() {
     const show = window.scrollY > 400;
-    buttons.forEach((button) => button.classList.toggle("visible", show));
+    document
+      .querySelectorAll("[data-scroll-top]")
+      .forEach((button) => button.classList.toggle("visible", show));
   }
 
-  buttons.forEach((button) =>
-    button.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }))
-  );
-
   window.addEventListener("scroll", sync, { passive: true });
-  sync();
+
+  // The buttons are replaced on client-side navigation, so bind per page load.
+  document.addEventListener("astro:page-load", () => {
+    document.querySelectorAll("[data-scroll-top]").forEach((button) =>
+      button.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }))
+    );
+    sync();
+  });
 </script>

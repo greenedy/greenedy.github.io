@@ -9,25 +9,35 @@ interface Props {
 const { email } = Astro.props;
 ---
 
-<button id="copy-email" type="button" data-email={email} aria-label="Copy email address">
+<button id="copy-email" type="button" data-email={email}>
+  <span class="sr-only">Copy email address:</span>
   {email}
   <span>
     <Copy data-copy-icon stroke-width={1.4} aria-hidden="true" />
     <Check data-check-icon stroke-width={1.4} aria-hidden="true" />
   </span>
 </button>
+<span id="copy-email-status" class="sr-only" role="status"></span>
 
 <script>
-  const button = document.getElementById("copy-email");
+  // The button is replaced on client-side navigation, so bind per page load.
+  document.addEventListener("astro:page-load", () => {
+    const button = document.getElementById("copy-email");
+    if (!button) return;
 
-  if (button) {
     const email = button.dataset.email ?? "";
     let timer: ReturnType<typeof setTimeout>;
 
+    const status = document.getElementById("copy-email-status");
+
     function showCopied() {
       button!.classList.add("copied");
+      if (status) status.textContent = "Email address copied";
       clearTimeout(timer);
-      timer = setTimeout(() => button!.classList.remove("copied"), 2000);
+      timer = setTimeout(() => {
+        button!.classList.remove("copied");
+        if (status) status.textContent = "";
+      }, 2000);
     }
 
     // execCommand only works inside the user-gesture window, so it can't be
@@ -73,5 +83,5 @@ const { email } = Astro.props;
 
       if (copiedSynchronously) showCopied();
     });
-  }
+  });
 </script>

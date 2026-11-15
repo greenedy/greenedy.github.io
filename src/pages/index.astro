@@ -1,5 +1,5 @@
 ---
-import Download from "@lucide/astro/icons/download";
+import FileText from "@lucide/astro/icons/file-text";
 import Layout from "../layouts/Layout.astro";
 import LinkCard from "../components/LinkCard.astro";
 import CopyEmail from "../components/CopyEmail.astro";
@@ -15,9 +15,7 @@ const email = "greenedy@hotmail.com";
   <div class="stack">
     <p class="intro">
       Software engineer at the Canada Border Services Agency, working full-stack and
-      mostly on AWS. Software Engineering grad from the University of Ottawa. Most of
-      my career has been in government IT, taking things from a first commit through
-      to something real people depend on.
+      mostly on AWS.
     </p>
 
     <div class="card-list">
@@ -43,11 +41,10 @@ const email = "greenedy@hotmail.com";
         <CopyEmail email={email} />
       </div>
 
-      {/* EDIT ME: drop a CV PDF in public/, or delete this block. */}
       <div>
-        <a class="cta" href="/dylan-greene-cv.pdf" download="Dylan-Greene-CV.pdf">
-          <span>Download my CV</span>
-          <Download stroke-width={1.4} aria-hidden="true" />
+        <a class="cta" href="/dylan-greene-cv.pdf" target="_blank" rel="noopener noreferrer">
+          <span>View my CV</span>
+          <FileText stroke-width={1.4} aria-hidden="true" />
         </a>
       </div>
     </div>
