@@ -4,6 +4,7 @@ import Header from "../components/Header.astro";
 import ScrollToTop from "../components/ScrollToTop.astro";
 import { ClientRouter } from "astro:transitions";
 import "@fontsource/karla/400.css";
+import karlaWoff2 from "@fontsource/karla/files/karla-latin-400-normal.woff2?url";
 import "../styles/global.css";
 
 interface Props {
@@ -47,6 +48,10 @@ const year = new Date().getFullYear();
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    {/* Fetch the font up front so the first paint isn't in the wider fallback
+        font, which reflows the text when Karla swaps in. */}
+    <link rel="preload" href={karlaWoff2} as="font" type="font/woff2" crossorigin />
+
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />

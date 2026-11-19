@@ -62,6 +62,9 @@ html.dark {
 
 html {
   min-height: 100%;
+  /* Reserve the scrollbar's space on every page, so the centred column doesn't
+     jump sideways between short pages and long ones (e.g. /projects). */
+  scrollbar-gutter: stable;
   -webkit-text-size-adjust: 100%;
   -webkit-tap-highlight-color: transparent;
 }
@@ -727,5 +730,38 @@ html.dark .icon-github {
 
   .project-head {
     flex-direction: column;
+  }
+}
+
+/* ----------------------------------------------------------------
+ *  Load animation — a soft, staggered fade-up on the social links,
+ *  project cards and about-me paragraphs. Titles stay put.
+ * ---------------------------------------------------------------- */
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    translate: 0 0.5rem;
+  }
+}
+
+.card-list > *,
+.projects > .project,
+article > p {
+  animation: rise-in 600ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: calc(var(--i, 0) * 60ms + 80ms);
+}
+
+:is(.card-list > *, .projects > .project, article > p):nth-child(2) { --i: 1; }
+:is(.card-list > *, .projects > .project, article > p):nth-child(3) { --i: 2; }
+:is(.card-list > *, .projects > .project, article > p):nth-child(4) { --i: 3; }
+:is(.card-list > *, .projects > .project, article > p):nth-child(5) { --i: 4; }
+:is(.card-list > *, .projects > .project, article > p):nth-child(n + 6) { --i: 5; }
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
   }
 }
